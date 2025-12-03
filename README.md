@@ -1,2 +1,185 @@
-# GIS_Analysetechniken-2
-Repo for working on the mid and final term group projects
+# GIS-based Assessment of Utility-Scale Photovoltaic Potential in Austria
+
+This project adapts and implements the methodology from "A GIS-based method for assessing the economics of utility-scale photovoltaic systems" (Benalcazar et al., 2024) to assess solar photovoltaic potential in Austria.
+
+## Project Overview
+
+### Original Methodology
+The original study developed a comprehensive GIS-based framework to assess land eligibility and techno-economic potential of utility-scale photovoltaic (PV) systems in Poland. The approach combines:
+- **Land eligibility analysis** using 20 exclusion criteria to identify suitable areas
+- **Techno-economic assessment** using Levelized Cost of Electricity (LCOE) calculations
+- **Spatial analysis** at 100m resolution across NUTS-2 administrative regions
+
+### Adaptation for Austria
+We adapt this methodology to Austria's context, focusing on its 9 NUTS-2 regions:
+- AT11: Ostösterreich (Eastern Austria)
+- AT12: Niederösterreich (Lower Austria)
+- AT13: Wien (Vienna)
+- AT21: Kärnten (Carinthia)
+- AT22: Steiermark (Styria)
+- AT31: Oberösterreich (Upper Austria)
+- AT32: Salzburg (Salzburg)
+- AT33: Tirol (Tyrol)
+- AT34: Vorarlberg (Vorarlberg)
+
+## Project Goals
+
+1. **Land Eligibility Mapping**: Identify suitable areas for utility-scale PV installations across Austria using spatially-explicit exclusion criteria
+2. **Capacity and Generation Potential**: Estimate installable PV capacity and electricity generation potential at 100m resolution
+3. **Economic Assessment**: Calculate Levelized Cost of Electricity (LCOE) considering Austria-specific techno-economic parameters
+4. **Regional Analysis**: Provide detailed insights for each of Austria's 9 NUTS-2 regions
+5. **Policy Support**: Generate evidence-based recommendations for renewable energy planning and investment
+
+## Methodology Adaptation
+
+### Land Eligibility Criteria
+Adapted from the original 20 criteria to Austrian context:
+- **Physical constraints**: Elevation (>2000m), slope (>30°), water bodies
+- **Environmental protection**: Natura 2000 sites, national parks, habitat protection areas
+- **Infrastructure**: Power lines, roads, railways, airports
+- **Land use**: Urban/industrial areas, forests, agricultural lands
+
+### Techno-Economic Parameters
+Austria-specific calibration of:
+- Hardware costs (€/kW)
+- Installation and soft costs
+- Discount rates
+- Operational and maintenance costs
+- Land use efficiency scenarios
+
+### Data Sources
+- **Land cover**: CORINE Land Cover 2018 (Copernicus)
+- **Elevation/Slope**: EU-DEM v1.1 (Copernicus)
+- **Protected areas**: Natura 2000, CDDA (EEA)
+- **Solar irradiation**: Global Solar Atlas (Solargis)
+- **Infrastructure**: OpenStreetMap
+- **Administrative boundaries**: Eurostat NUTS boundaries
+
+## Project Structure
+
+```
+├── data/
+│   ├── raw/                 # Raw geospatial data
+│   ├── processed/           # Processed datasets
+│   └── results/             # Analysis outputs
+├── scripts/
+│   ├── preprocessing/       # Data acquisition and preprocessing
+│   ├── analysis/            # Core GIS analysis scripts
+│   └── visualization/       # Results visualization
+├── docs/
+│   ├── methodology/         # Detailed methodology documentation
+│   └── references/          # Reference materials
+├── notebooks/               # Jupyter notebooks for analysis
+├── config.py                # Project configuration
+├── requirements.txt         # Python dependencies
+└── README.md               # This file
+```
+
+## Implementation Roadmap
+
+### Phase 1: Project Setup and Data Acquisition
+- [x] Create project structure
+- [ ] Set up development environment
+- [ ] Identify and acquire geospatial data sources
+- [ ] Implement data download scripts
+
+### Phase 2: Land Eligibility Analysis
+- [ ] Develop exclusion criteria processing pipeline
+- [ ] Implement GIS-based land suitability analysis
+- [ ] Validate exclusion criteria for Austrian context
+- [ ] Generate land eligibility maps
+
+### Phase 3: Techno-Economic Assessment
+- [ ] Calibrate techno-economic parameters for Austria
+- [ ] Implement LCOE calculation framework
+- [ ] Integrate solar resource data
+- [ ] Perform capacity and generation potential analysis
+
+### Phase 4: Results Analysis and Visualization
+- [ ] Create regional summary statistics
+- [ ] Develop interactive maps and visualizations
+- [ ] Generate policy-relevant insights
+- [ ] Produce final report and recommendations
+
+## Key Technical Components
+
+### GIS Processing Pipeline
+1. **Data Preprocessing**: Coordinate system alignment, clipping to Austria boundaries
+2. **Exclusion Application**: Sequential application of 20 land eligibility criteria
+3. **Solar Resource Integration**: Overlay with solar irradiation data
+4. **Economic Calculations**: LCOE computation for eligible areas
+
+### LCOE Calculation Framework
+Following Benalcazar et al. (2024), LCOE is calculated as:
+```
+LCOE = (CAPEX + OPEX) / Lifetime Energy Production
+
+Where:
+CAPEX = Hardware + Soft Costs + Installation Costs
+OPEX = O&M Costs (as % of installation costs)
+```
+
+### Quality Assurance
+- **Spatial Resolution**: 100m × 100m grid cells
+- **Coordinate System**: ETRS89-extended / LAEA Europe (EPSG:3035)
+- **Data Validation**: Cross-checking against official statistics
+- **Uncertainty Analysis**: Sensitivity testing of key parameters
+
+## Expected Outputs
+
+1. **Land Eligibility Maps**: Spatial distribution of suitable areas
+2. **Capacity Potential Maps**: Installable PV capacity by region
+3. **LCOE Maps**: Economic viability assessment
+4. **Regional Reports**: Detailed analysis for each NUTS-2 region
+5. **Policy Brief**: Key findings and recommendations
+
+## Dependencies and Requirements
+
+### Software Requirements
+- Python 3.8+
+- QGIS 3.28+ (for GIS operations)
+- GDAL/OGR (for geospatial data processing)
+
+### Key Python Libraries
+- geopandas: Vector geospatial data processing
+- rasterio: Raster data processing
+- pandas/numpy: Data analysis
+- matplotlib/plotly: Visualization
+- requests: Data acquisition
+
+## Data Management
+
+### Data Sources and Licensing
+- **Open Data**: CORINE Land Cover, EU-DEM, Eurostat boundaries
+- **Restricted Access**: Some datasets may require registration
+- **Licensing**: Ensure compliance with data provider terms
+
+### Storage and Processing
+- **Raw Data**: ~50-100 GB expected for Austria coverage
+- **Processing**: High-performance computing may be needed for full analysis
+- **Backup**: Version control for critical datasets
+
+## Team and Collaboration
+
+### Development Workflow
+1. **Version Control**: Git-based collaboration
+2. **Documentation**: Comprehensive code documentation
+3. **Testing**: Unit tests for critical functions
+4. **Code Review**: Peer review for major changes
+
+### Quality Standards
+- **Reproducibility**: Documented methodology and parameters
+- **Transparency**: Open source code and data sources
+- **Validation**: Comparison with existing studies
+
+## References
+
+1. Benalcazar, P., Komorowska, A., & Kamiński, J. (2024). A GIS-based method for assessing the economics of utility-scale photovoltaic systems. *Applied Energy*, 353, 122044.
+
+2. IRENA. (2022). Renewable power generation costs in 2021.
+
+3. European Commission. (2022). EU solar energy strategy.
+
+## Contact and Support
+
+For questions or contributions, please refer to the course instructor or create an issue in this repository.
