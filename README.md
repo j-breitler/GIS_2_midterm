@@ -10,17 +10,8 @@ The original study developed a comprehensive GIS-based framework to assess land 
 - **Techno-economic assessment** using Levelized Cost of Electricity (LCOE) calculations
 - **Spatial analysis** at 100m resolution across NUTS-2 administrative regions
 
-### Adaptation for Austria
-We adapt this methodology to Austria's context, focusing on its 9 NUTS-2 regions:
-- AT11: Ostösterreich (Eastern Austria)
-- AT12: Niederösterreich (Lower Austria)
-- AT13: Wien (Vienna)
-- AT21: Kärnten (Carinthia)
-- AT22: Steiermark (Styria)
-- AT31: Oberösterreich (Upper Austria)
-- AT32: Salzburg (Salzburg)
-- AT33: Tirol (Tyrol)
-- AT34: Vorarlberg (Vorarlberg)
+### Adaptation for a Bezirk of Styria
+We adapt this methodology to Südoststeiermerk's context, focusing on its 9 
 
 ## Project Goals
 
@@ -34,8 +25,8 @@ We adapt this methodology to Austria's context, focusing on its 9 NUTS-2 regions
 
 ### Land Eligibility Criteria
 Adapted from the original 20 criteria to Austrian context:
-- **Physical constraints**: Elevation (>2000m), slope (>30°), water bodies
-- **Environmental protection**: Natura 2000 sites, national parks, habitat protection areas
+- **Physical constraints**: slope (>30°), water bodies
+- **Environmental protection**: Natura 2000 sites, habitat protection areas
 - **Infrastructure**: Power lines, roads, railways, airports
 - **Land use**: Urban/industrial areas, forests, agricultural lands
 
@@ -104,8 +95,8 @@ Austria-specific calibration of:
 ## Key Technical Components
 
 ### GIS Processing Pipeline
-1. **Data Preprocessing**: Coordinate system alignment, clipping to Austria boundaries
-2. **Exclusion Application**: Sequential application of 20 land eligibility criteria
+1. **Data Preprocessing**: Coordinate system alignment, clipping to Südoststeiermark boundaries
+2. **Exclusion Application**: Sequential application (number of) land eligibility criteria
 3. **Solar Resource Integration**: Overlay with solar irradiation data
 4. **Economic Calculations**: LCOE computation for eligible areas
 
@@ -121,7 +112,7 @@ OPEX = O&M Costs (as % of installation costs)
 
 ### Quality Assurance
 - **Spatial Resolution**: 100m × 100m grid cells
-- **Coordinate System**: ETRS89-extended / LAEA Europe (EPSG:3035)
+- **Coordinate System**: ETRS89-extended / LAEA Europe (EPSG:32633)
 - **Data Validation**: Cross-checking against official statistics
 - **Uncertainty Analysis**: Sensitivity testing of key parameters
 
@@ -144,7 +135,7 @@ OPEX = O&M Costs (as % of installation costs)
 - geopandas: Vector geospatial data processing
 - rasterio: Raster data processing
 - pandas/numpy: Data analysis
-- matplotlib/plotly: Visualization
+- Kepler: Visualization
 - requests: Data acquisition
 
 ## Data Management
