@@ -3,12 +3,9 @@ Data acquisition and preprocessing script
 Downloads and processes geospatial data for Austria PV potential assessment
 """
 
-import os
 import requests
-import geopandas as gpd
-import rasterio
+import os
 from pathlib import Path
-from config import DATA_SOURCES, AUSTRIA_NUTS2_REGIONS
 
 class DataDownloader:
     """Handles downloading and preprocessing of geospatial data"""
@@ -16,59 +13,40 @@ class DataDownloader:
     def __init__(self, data_dir="data"):
         self.data_dir = Path(data_dir)
         self.raw_dir = self.data_dir / "raw"
-        self.processed_dir = self.data_dir / "processed"
-
-        # Create directories if they don't exist
         self.raw_dir.mkdir(parents=True, exist_ok=True)
-        self.processed_dir.mkdir(parents=True, exist_ok=True)
 
-    def download_corine_land_cover(self):
-        """Download CORINE Land Cover data for Austria"""
-        print("Downloading CORINE Land Cover data...")
-        # Implementation for CORINE Land Cover download
-        pass
+    def download_glo30_dem(self):
+        """
+        Download GLO-30 Digital Elevation Model from Copernicus
+        This is a 30m resolution global DEM
+        """
+        print("Starting GLO-30 DEM download...")
 
-    def download_eu_dem(self):
-        """Download EU-DEM elevation data"""
-        print("Downloading EU-DEM elevation data...")
-        # Implementation for EU-DEM download
-        pass
+        # GLO-30 download URL for Austria (example tile)
+        # Note: You would need to find the specific tile URLs for Austria
+        # This is a placeholder - in reality you'd need the actual Copernicus API or direct download links
 
-    def download_protected_areas(self):
-        """Download Natura 2000 and other protected areas"""
-        print("Downloading protected areas data...")
-        # Implementation for protected areas download
-        pass
-
-    def download_solar_data(self):
-        """Download solar irradiation data"""
-        print("Downloading solar irradiation data...")
-        # Implementation for solar data download
-        pass
-
-    def preprocess_austria_boundary(self):
-        """Extract and process Austria administrative boundaries"""
-        print("Processing Austria NUTS boundaries...")
-        # Implementation for boundary processing
-        pass
-
-    def run_all_downloads(self):
-        """Execute all data downloads"""
-        print("Starting data acquisition process...")
+        dem_url = "https://example.copernicus.eu/dem/glo30/austria_tile.tif"  # Placeholder URL
+        output_file = self.raw_dir / "glo30_austria_dem.tif"
 
         try:
-            self.download_corine_land_cover()
-            self.download_eu_dem()
-            self.download_protected_areas()
-            self.download_solar_data()
-            self.preprocess_austria_boundary()
+            print(f"Downloading from: {dem_url}")
+            print(f"Saving to: {output_file}")
 
-            print("Data acquisition completed successfully!")
+            # Download the file
+            response = requests.get(dem_url)
+            response.raise_for_status()  # Check if download was successful
+
+            # Save the file
+            with open(output_file, 'wb') as f:
+                f.write(response.content)
+
+            print(f"Successfully downloaded GLO-30 DEM to {output_file}")
+            print(f"File size: {os.path.getsize(output_file)} bytes")
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error downloading GLO-30 DEM: {e}")
+            print("Note: This is a placeholder. You need to find the actual Copernicus GLO-30 download URLs.")
 
         except Exception as e:
-            print(f"Error during data acquisition: {e}")
-            raise
-
-if __name__ == "__main__":
-    downloader = DataDownloader()
-    downloader.run_all_downloads()
+            print(f"Unexpected error: {e}")

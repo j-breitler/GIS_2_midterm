@@ -10,16 +10,15 @@ The original study developed a comprehensive GIS-based framework to assess land 
 - **Techno-economic assessment** using Levelized Cost of Electricity (LCOE) calculations
 - **Spatial analysis** at 100m resolution across NUTS-2 administrative regions
 
-### Adaptation for a Bezirk of Styria
-We adapt this methodology to Südoststeiermerk's context, focusing on its 9 
+### Adaptation for a Südoststeiermark a Bezirk (County)of Styria
+We adapt this methodology to Südoststeiermerk's context.
 
 ## Project Goals
 
 1. **Land Eligibility Mapping**: Identify suitable areas for utility-scale PV installations across Austria using spatially-explicit exclusion criteria
 2. **Capacity and Generation Potential**: Estimate installable PV capacity and electricity generation potential at 100m resolution
 3. **Economic Assessment**: Calculate Levelized Cost of Electricity (LCOE) considering Austria-specific techno-economic parameters
-4. **Regional Analysis**: Provide detailed insights for each of Austria's 9 NUTS-2 regions
-5. **Policy Support**: Generate evidence-based recommendations for renewable energy planning and investment
+5. **Visualize the generated Results**: Generate visualizations of our results...
 
 ## Methodology Adaptation
 
@@ -40,11 +39,11 @@ Austria-specific calibration of:
 
 ### Data Sources
 - **Land cover**: CORINE Land Cover 2018 (Copernicus)
-- **Elevation/Slope**: EU-DEM v1.1 (Copernicus)
-- **Protected areas**: Natura 2000, CDDA (EEA)
+- **Elevation/Slope**: SRTM (NASA Shuttle Radar Topography Mission (SRTM)(2013). Shuttle Radar Topography Mission (SRTM) Global.  Distributed by OpenTopography.  https://doi.org/10.5069/G9445JDF. Accessed 2025-12-04)
+- **Protected areas**: Natura 2000
 - **Solar irradiation**: Global Solar Atlas (Solargis)
 - **Infrastructure**: OpenStreetMap
-- **Administrative boundaries**: Eurostat NUTS boundaries
+- **Administrative boundaries**: data.gv.at (https://www.data.gv.at/datasets/aa22cd20-395f-11e2-81c1-0800200c9a66?locale=de)
 
 ## Project Structure
 
@@ -141,27 +140,21 @@ OPEX = O&M Costs (as % of installation costs)
 ## Data Management
 
 ### Data Sources and Licensing
-- **Open Data**: CORINE Land Cover, EU-DEM, Eurostat boundaries
+- **Open Data**: CORINE Land Cover, SRTM DEM, Bezirksgrenzen Steiermark
 - **Restricted Access**: Some datasets may require registration
 - **Licensing**: Ensure compliance with data provider terms
 
-### Storage and Processing
-- **Raw Data**: ~50-100 GB expected for Austria coverage
-- **Processing**: High-performance computing may be needed for full analysis
-- **Backup**: Version control for critical datasets
 
 ## Team and Collaboration
 
 ### Development Workflow
 1. **Version Control**: Git-based collaboration
 2. **Documentation**: Comprehensive code documentation
-3. **Testing**: Unit tests for critical functions
-4. **Code Review**: Peer review for major changes
 
 ### Quality Standards
 - **Reproducibility**: Documented methodology and parameters
 - **Transparency**: Open source code and data sources
-- **Validation**: Comparison with existing studies
+
 
 ## References
 
@@ -171,6 +164,3 @@ OPEX = O&M Costs (as % of installation costs)
 
 3. European Commission. (2022). EU solar energy strategy.
 
-## Contact and Support
-
-For questions or contributions, please refer to the course instructor or create an issue in this repository.
