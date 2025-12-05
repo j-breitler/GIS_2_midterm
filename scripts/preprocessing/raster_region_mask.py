@@ -1,6 +1,10 @@
 '''
 This script creates a region mask for the study area.
-It is used to mask the raster data to the study area.
+
+The region mask is NOT primarily used for clipping other layers. Instead, it serves as:
+The starting point - A raster where ALL pixels = 1 (available)
+The canvas for exclusions - Each exclusion constraint will turn pixels from 1 → 0
+The final eligibility map - After all exclusions, remaining 1s = eligible land
 
 Data Import needs to been improved to be more robust.
 For now you need to manually define the input and output paths.
