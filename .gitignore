@@ -1,1 +1,18 @@
+# Ignore data folder
 data/
+
+# Ignore Python cache
+__pycache__/
+
+# Ignore specific files
+*.pdf
+config.py
+extracted_text.txt
+requirements.txt
+
+# (optional) ignore notebooks checkpoints
+.ipynb_checkpoints/
+
+# (optional) ignore virtual environments
+venv/
+.env/
