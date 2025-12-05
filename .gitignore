@@ -9,6 +9,8 @@ __pycache__/
 config.py
 extracted_text.txt
 requirements.txt
+prompts.txt
+
 
 # (optional) ignore notebooks checkpoints
 .ipynb_checkpoints/

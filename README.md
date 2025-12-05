@@ -20,31 +20,6 @@ We adapt this methodology to Südoststeiermerk's context.
 3. **Economic Assessment**: Calculate Levelized Cost of Electricity (LCOE) considering Austria-specific techno-economic parameters
 5. **Visualize the generated Results**: Generate visualizations of our results...
 
-## Methodology Adaptation
-
-### Land Eligibility Criteria
-Adapted from the original 20 criteria to Austrian context:
-- **Physical constraints**: slope (>30°), water bodies
-- **Environmental protection**: Natura 2000 sites, habitat protection areas
-- **Infrastructure**: Power lines, roads, railways, airports
-- **Land use**: Urban/industrial areas, forests, agricultural lands
-
-### Techno-Economic Parameters
-Austria-specific calibration of:
-- Hardware costs (€/kW)
-- Installation and soft costs
-- Discount rates
-- Operational and maintenance costs
-- Land use efficiency scenarios
-
-### Data Sources
-- **Land cover**: CORINE Land Cover 2018 (Copernicus)
-- **Elevation/Slope**: SRTM (NASA Shuttle Radar Topography Mission (SRTM)(2013). Shuttle Radar Topography Mission (SRTM) Global.  Distributed by OpenTopography.  https://doi.org/10.5069/G9445JDF. Accessed 2025-12-04)
-- **Protected areas**: Natura 2000
-- **Solar irradiation**: Global Solar Atlas (Solargis)
-- **Infrastructure**: OpenStreetMap
-- **Administrative boundaries**: data.gv.at (https://www.data.gv.at/datasets/aa22cd20-395f-11e2-81c1-0800200c9a66?locale=de)
-
 ## Project Structure
 
 ```
@@ -64,6 +39,72 @@ Austria-specific calibration of:
 ├── requirements.txt         # Python dependencies
 └── README.md               # This file
 ```
+
+## Core Methodology Steps
+
+### 1. Initialization & Region Definition
+
+- Define spatial reference system (CRS) 
+- Set output resolution: 100m × 100m pixels
+- Define geographic area of interest (Südoststeiermark)
+- Create initial region mask (Boolean raster covering entire area)
+
+### 2. Data Acquisition
+
+#### Vector Data:
+- Power transmission lines
+- Roads network
+- Railways
+- Airports
+- Urban areas
+- Industrial areas
+- Protected areas (Natura 2000 equivalent for Austria)
+- Forest areas (deciduous, coniferous, mixed)
+- Administrativ boarders [data.gv.at (https://www.data.gv.at/datasets/aa22cd20-395f-11e2-81c1-0800200c9a66?locale=de)
+]
+
+#### Raster Data:
+- Digital Elevation Model (DEM) [SRTM (NASA Shuttle Radar Topography Mission (SRTM)(2013). Shuttle Radar Topography Mission (SRTM) Global.  Distributed by OpenTopography.  https://doi.org/10.5069/G9445JDF. Accessed 2025-12-04)]
+- Land cover classification (CORINE Land Cover or equivalent)
+
+
+### 3. Data Preprocessing
+
+For each dataset:
+- Clip to study area boundaries
+- Reproject to common CRS
+- Ensure consistent resolution (100m)
+- Convert vector to raster where needed
+- Apply buffer distances where specified
+
+
+### 4. Exclusion Constraint Application
+
+Apply 20 constraints iteratively (from Table 1):
+
+| Constraint | Buffer Distance |
+|------------|----------------|
+| Power transmission lines | 120m 
+| Roads | 100m |
+| Railways | 100m |
+| Airports | 5000m | 
+| Urban areas | 500m | 
+| Industrial areas | 500m | 
+| Lakes | 0m |
+| Forests (all types) | 0m | 
+| Slopes > 30° | 0m | 
+
+
+### 5. Boolean Matrix Operations
+
+- Start with all pixels = 1 (available)
+- For each constraint:
+  - Create Boolean mask (1 = exclude, 0 = available)
+  - Apply logical AND operation to region mask
+  - Update cumulative exclusion map
+- Final output: Binary raster (1 = eligible, 0 = excluded)
+
+
 
 ## Implementation Roadmap
 
@@ -91,13 +132,7 @@ Austria-specific calibration of:
 - [ ] Generate policy-relevant insights
 - [ ] Produce final report and recommendations
 
-## Key Technical Components
 
-### GIS Processing Pipeline
-1. **Data Preprocessing**: Coordinate system alignment, clipping to Südoststeiermark boundaries
-2. **Exclusion Application**: Sequential application (number of) land eligibility criteria
-3. **Solar Resource Integration**: Overlay with solar irradiation data
-4. **Economic Calculations**: LCOE computation for eligible areas
 
 ### LCOE Calculation Framework
 Following Benalcazar et al. (2024), LCOE is calculated as:
@@ -109,40 +144,16 @@ CAPEX = Hardware + Soft Costs + Installation Costs
 OPEX = O&M Costs (as % of installation costs)
 ```
 
-### Quality Assurance
-- **Spatial Resolution**: 100m × 100m grid cells
-- **Coordinate System**: ETRS89-extended / LAEA Europe (EPSG:32633)
-- **Data Validation**: Cross-checking against official statistics
-- **Uncertainty Analysis**: Sensitivity testing of key parameters
 
-## Expected Outputs
 
-1. **Land Eligibility Maps**: Spatial distribution of suitable areas
-2. **Capacity Potential Maps**: Installable PV capacity by region
-3. **LCOE Maps**: Economic viability assessment
-4. **Regional Reports**: Detailed analysis for each NUTS-2 region
-5. **Policy Brief**: Key findings and recommendations
-
-## Dependencies and Requirements
-
-### Software Requirements
-- Python 3.8+
-- QGIS 3.28+ (for GIS operations)
-- GDAL/OGR (for geospatial data processing)
 
 ### Key Python Libraries
 - geopandas: Vector geospatial data processing
 - rasterio: Raster data processing
 - pandas/numpy: Data analysis
 - Kepler: Visualization
-- requests: Data acquisition
 
 ## Data Management
-
-### Data Sources and Licensing
-- **Open Data**: CORINE Land Cover, SRTM DEM, Bezirksgrenzen Steiermark
-- **Restricted Access**: Some datasets may require registration
-- **Licensing**: Ensure compliance with data provider terms
 
 
 ## Team and Collaboration
