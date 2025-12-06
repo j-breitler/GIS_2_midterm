@@ -1,177 +1,202 @@
-# GIS-based Assessment of Utility-Scale Photovoltaic Potential in Austria
+# GIS-based Assessment of Utility-Scale Photovoltaic Potential in Suedoststeiermark, Austria
 
-This project adapts and implements the methodology from "A GIS-based method for assessing the economics of utility-scale photovoltaic systems" (Benalcazar et al., 2024) to assess solar photovoltaic potential in Austria.
+This project adapts and implements the methodology from "A GIS-based method for assessing the economics of utility-scale photovoltaic systems" (Benalcazar et al., 2024) to assess solar photovoltaic potential in Suedoststeiermark, a district in the Austrian state of Styria.
 
 ## Project Overview
 
 ### Original Methodology
 The original study developed a comprehensive GIS-based framework to assess land eligibility and techno-economic potential of utility-scale photovoltaic (PV) systems in Poland. The approach combines:
-- **Land eligibility analysis** using 20 exclusion criteria to identify suitable areas
+- **Land eligibility analysis** using exclusion criteria to identify suitable areas
 - **Techno-economic assessment** using Levelized Cost of Electricity (LCOE) calculations
-- **Spatial analysis** at 100m resolution across NUTS-2 administrative regions
+- **Spatial analysis** at 100m resolution across administrative regions
 
-### Adaptation for a Südoststeiermark a Bezirk (County)of Styria
-We adapt this methodology to Südoststeiermerk's context.
+### Adaptation for Suedoststeiermark
+We adapt this methodology to the Suedoststeiermark district context, focusing on a smaller-scale, detailed analysis suitable for regional planning and decision-making.
 
-## Project Goals
+---
 
-1. **Land Eligibility Mapping**: Identify suitable areas for utility-scale PV installations across Austria using spatially-explicit exclusion criteria
-2. **Capacity and Generation Potential**: Estimate installable PV capacity and electricity generation potential at 100m resolution
-3. **Economic Assessment**: Calculate Levelized Cost of Electricity (LCOE) considering Austria-specific techno-economic parameters
-5. **Visualize the generated Results**: Generate visualizations of our results...
+## Quick Start: Running the Analysis
+
+### Prerequisites
+1. Install Python dependencies: pip install -r requirements.txt
+2. Place raw data in data/raw/ (see Data Sources section)
+3. Run python config.py to verify setup and create directories
+
+### Script Execution Order
+
+**IMPORTANT: Run the preprocessing scripts in this exact order:**
+
+| Step | Script | Output |
+|------|--------|--------|
+| 1 | python scripts/preprocessing/raster_region_mask.py | data/preprocessed/region_mask_100m.tif |
+| 2 | python scripts/preprocessing/reproject_clip_dem.py | data/preprocessed/DEM_clipped.tif |
+| 3 | python scripts/preprocessing/reproject_clip_shps.py | data/preprocessed/clipped/*_clipped.shp |
+| 4 | python scripts/preprocessing/buffer_shps.py | data/preprocessed/buffered/*_buffered.shp |
+| 5 | python scripts/preprocessing/slope_exclusion.py | data/preprocessed/exclusions/slope_exclusion.tif |
+| 6 | python scripts/preprocessing/batch_process_vector_to_raster_exclusion.py | data/preprocessed/exclusions/*_exclusion.tif |
+| 7 | python scripts/preprocessing/master_exclusion.py | data/preprocessed/master_suitability.tif **(FINAL)** |
+
+### Data Flow Diagram
+
+Study Area Shapefile --> region_mask_100m.tif --+
+                                                |
+DEM (30m) --> DEM_clipped.tif --> slope_exclusion.tif --+
+                                                         |
+Vector Shapefiles:                                       |
+  Airport, Forest, Industry,    clipped/    buffered/    |
+  Natura2000, Powerlines,   --> *_clipped --> *_buffered --> exclusions/ --+--> master_suitability.tif
+  Railway, Streets,                                      |     (1=suitable, 0=excluded)
+  UrbanArea, WaterBodies                     ------------+
+
+---
 
 ## Project Structure
 
-```
-├── data/
-│   ├── raw/                 # Raw geospatial data
-│   ├── processed/           # Processed datasets
-│   └── results/             # Analysis outputs
-├── scripts/
-│   ├── preprocessing/       # Data acquisition and preprocessing
-│   ├── analysis/            # Core GIS analysis scripts
-│   └── visualization/       # Results visualization
-├── docs/
-│   ├── methodology/         # Detailed methodology documentation
-│   └── references/          # Reference materials
-├── notebooks/               # Jupyter notebooks for analysis
-├── config.py                # Project configuration
-├── requirements.txt         # Python dependencies
-└── README.md               # This file
-```
+GIS_2_midterm/
+|-- config.py                    # Central configuration (paths, settings, parameters)
+|-- requirements.txt             # Python dependencies
+|-- README.md                    # This file
+|
+|-- data/
+|   |-- raw/                     # Original unmodified input data
+|   |   |-- Raster/DEM/          # Digital Elevation Model
+|   |   |-- Raster/PVOUT.tif     # Solar PV output potential
+|   |   |-- Vector/              # Constraint shapefiles (9 files)
+|   |   +-- Study_Area_Vector/   # Suedoststeiermark boundary
+|   |
+|   |-- preprocessed/            # Intermediate processing outputs
+|   |   |-- region_mask_100m.tif # Study area raster mask
+|   |   |-- DEM_clipped.tif      # Clipped DEM
+|   |   |-- master_suitability.tif # FINAL combined suitability
+|   |   |-- clipped/             # Reprojected and clipped vectors
+|   |   |-- buffered/            # Buffered vectors
+|   |   +-- exclusions/          # Individual exclusion rasters
+|   |
+|   |-- processed/               # Fully processed data
+|   +-- results/                 # Final outputs (figures, rasters, vectors, reports)
+|
+|-- scripts/
+|   |-- preprocessing/           # Steps 1-7 (see execution order above)
+|   |-- analysis/                # Analysis/calculation scripts
+|   +-- visualisation/           # Plotting/mapping scripts
+|
+|-- docs/                        # Documentation
++-- notebooks/                   # Jupyter notebooks
 
-## Core Methodology Steps
+---
 
-### 1. Initialization & Region Definition
+## Configuration System
 
-- Define spatial reference system (CRS) 
-- Set output resolution: 100m × 100m pixels
-- Define geographic area of interest (Südoststeiermark)
-- Create initial region mask (Boolean raster covering entire area)
+All paths and parameters are centralized in config.py.
 
-### 2. Data Acquisition
+### Key Settings
 
-#### Vector Data:
-- Power transmission lines
-- Roads network
-- Railways
-- Airports
-- Urban areas
-- Industrial areas
-- Protected areas (Natura 2000 equivalent for Austria)
-- Forest areas (deciduous, coniferous, mixed)
-- Administrativ boarders [data.gv.at (https://www.data.gv.at/datasets/aa22cd20-395f-11e2-81c1-0800200c9a66?locale=de)
-]
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| TARGET_CRS | EPSG:32633 | UTM Zone 33N (meters) |
+| RESOLUTION | 100m | Raster pixel size |
+| MAX_SLOPE_DEGREES | 15 degrees | Slope threshold for exclusion |
 
-#### Raster Data:
-- Digital Elevation Model (DEM) [SRTM (NASA Shuttle Radar Topography Mission (SRTM)(2013). Shuttle Radar Topography Mission (SRTM) Global.  Distributed by OpenTopography.  https://doi.org/10.5069/G9445JDF. Accessed 2025-12-04)]
-- Land cover classification (CORINE Land Cover or equivalent)
+### Buffer Distances
 
+| Constraint | Buffer (m) | Rationale |
+|------------|------------|-----------|
+| Powerlines | 120 | Safety distance |
+| Streets | 100 | Road setback |
+| Railway | 100 | Railway setback |
+| Airport | 5000 | Flight paths, noise |
+| Urban Area | 500 | Residential buffer |
+| Industry | 500 | Industrial zone buffer |
+| Water Bodies | 0 | Direct exclusion only |
+| Natura 2000 | 300 | Protected area buffer |
+| Forest | 0 | Direct exclusion only |
 
-### 3. Data Preprocessing
+### Using config.py in Scripts
 
-For each dataset:
-- Clip to study area boundaries
-- Reproject to common CRS
-- Ensure consistent resolution (100m)
-- Convert vector to raster where needed
-- Apply buffer distances where specified
+# Add project root to path
+import sys
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
+from config import RAW_VECTORS, STUDY_AREA_SHAPEFILE, PREPROCESSED_DIR, TARGET_CRS
 
-### 4. Exclusion Constraint Application
+---
 
-Apply 20 constraints iteratively (from Table 1):
+## Preprocessing Scripts Detail
 
-| Constraint | Buffer Distance |
-|------------|----------------|
-| Power transmission lines | 120m 
-| Roads | 100m |
-| Railways | 100m |
-| Airports | 5000m | 
-| Urban areas | 500m | 
-| Industrial areas | 500m | 
-| Lakes | 0m |
-| Forests (all types) | 0m | 
-| Slopes > 30° | 0m | 
+### Step 1: raster_region_mask.py
+Creates binary raster mask (1=inside, 0=outside) at 100m resolution as template.
 
+### Step 2: reproject_clip_dem.py
+Reprojects raw DEM to UTM 33N and clips to study area (in-memory processing).
 
-### 5. Boolean Matrix Operations
+### Step 3: reproject_clip_shps.py
+Reprojects all constraint shapefiles to UTM 33N and clips. Output: preprocessed/clipped/
 
-- Start with all pixels = 1 (available)
-- For each constraint:
-  - Create Boolean mask (1 = exclude, 0 = available)
-  - Apply logical AND operation to region mask
-  - Update cumulative exclusion map
-- Final output: Binary raster (1 = eligible, 0 = excluded)
+### Step 4: buffer_shps.py
+Applies buffer distances from config.BUFFER_DISTANCES. Output: preprocessed/buffered/
 
+### Step 5: slope_exclusion.py
+Calculates slope using Sobel operator. Creates exclusion where slope > 15 degrees.
 
+### Step 6: batch_process_vector_to_raster_exclusion.py
+Converts buffered shapefiles to rasters matching region mask. Output: exclusions/
 
-## Implementation Roadmap
+### Step 7: master_exclusion.py
+Combines all exclusions: suitability = region_mask AND (NOT each_exclusion)
+Output: master_suitability.tif (1=suitable, 0=excluded)
 
-### Phase 1: Project Setup and Data Acquisition
-- [x] Create project structure
-- [ ] Set up development environment
-- [ ] Identify and acquire geospatial data sources
-- [ ] Implement data download scripts
+---
 
-### Phase 2: Land Eligibility Analysis
-- [ ] Develop exclusion criteria processing pipeline
-- [ ] Implement GIS-based land suitability analysis
-- [ ] Validate exclusion criteria for Austrian context
-- [ ] Generate land eligibility maps
+## Analysis Results
 
-### Phase 3: Techno-Economic Assessment
-- [ ] Calibrate techno-economic parameters for Austria
-- [ ] Implement LCOE calculation framework
-- [ ] Integrate solar resource data
-- [ ] Perform capacity and generation potential analysis
+- **Study Area**: ~987 km2
+- **Suitable Area**: ~106 km2 (10.74%)
+- **Excluded Area**: ~881 km2 (89.26%)
 
-### Phase 4: Results Analysis and Visualization
-- [ ] Create regional summary statistics
-- [ ] Develop interactive maps and visualizations
-- [ ] Generate policy-relevant insights
-- [ ] Produce final report and recommendations
+---
 
+## Data Sources
 
+### Vector Data
+- OpenStreetMap (OSM): Roads, railways, airports, urban areas, forests (Geofabrik.de)
+- Protected Areas: Natura 2000 sites (Austrian Federal Environment Agency)
+- Administrative Boundaries: data.gv.at
 
-### LCOE Calculation Framework
-Following Benalcazar et al. (2024), LCOE is calculated as:
-```
-LCOE = (CAPEX + OPEX) / Lifetime Energy Production
+### Raster Data
+- DEM: SRTM 30m (NASA, https://doi.org/10.5069/G9445JDF)
+- PVOUT: Solar PV output potential (kWh/kWp/year)
 
-Where:
-CAPEX = Hardware + Soft Costs + Installation Costs
-OPEX = O&M Costs (as % of installation costs)
-```
+---
 
+## Key Python Libraries
 
+- geopandas: Vector geospatial processing
+- rasterio: Raster I/O and processing
+- shapely: Geometric operations
+- pyproj: CRS transformations
+- numpy: Array operations
+- scipy: Slope calculations (Sobel operator)
+- matplotlib: Visualization
 
+---
 
-### Key Python Libraries
-- geopandas: Vector geospatial data processing
-- rasterio: Raster data processing
-- pandas/numpy: Data analysis
-- Kepler: Visualization
+## Troubleshooting
 
-## Data Management
+### PROJ Library Conflict
+If you see PROJ database errors, config.py includes a fix that sets PROJ_LIB correctly.
+Common when PostGIS or QGIS is installed.
 
+### Missing .shx Files
+Scripts set SHAPE_RESTORE_SHX=YES to handle shapefiles with missing .shx files.
 
-## Team and Collaboration
-
-### Development Workflow
-1. **Version Control**: Git-based collaboration
-2. **Documentation**: Comprehensive code documentation
-
-### Quality Standards
-- **Reproducibility**: Documented methodology and parameters
-- **Transparency**: Open source code and data sources
-
+---
 
 ## References
 
-1. Benalcazar, P., Komorowska, A., & Kamiński, J. (2024). A GIS-based method for assessing the economics of utility-scale photovoltaic systems. *Applied Energy*, 353, 122044.
+1. Benalcazar, P., Komorowska, A., and Kaminski, J. (2024). A GIS-based method for assessing the economics of utility-scale photovoltaic systems. Applied Energy, 353, 122044.
 
 2. IRENA. (2022). Renewable power generation costs in 2021.
 
 3. European Commission. (2022). EU solar energy strategy.
-
