@@ -10,12 +10,7 @@ os.environ["SHAPE_RESTORE_SHX"] = "YES"   # <-- FIX for missing .shx files
 from pathlib import Path
 import geopandas as gpd
 
-
-<<<<<<< HEAD
-
-
-=======
-# Configuration
+#Configuration
 RAW_DIR = Path("data/raw")
 OUT_DIR = Path("data/processed/reprojected_utm33n")
 TARGET_CRS = "EPSG:32633"   # UTM 33N
@@ -229,7 +224,5 @@ def buffer_all():
         gdf.to_file(out_path, mode="w")
         print(f"  → Saved buffered layer to {out_path}")
 
-
 if __name__ == "__main__":
-    buffer_all()
->>>>>>> e1de50c (Update preprocessing script)
+    buffer_all()        
