@@ -10,6 +10,7 @@ config.py
 extracted_text.txt
 requirements.txt
 prompts.txt
+scripts/preprocessing/rasterization.py
 
 
 # (optional) ignore notebooks checkpoints
