@@ -5,35 +5,51 @@ The region mask is NOT primarily used for clipping other layers. Instead, it ser
 The starting point - A raster where ALL pixels = 1 (available)
 The canvas for exclusions - Each exclusion constraint will turn pixels from 1 → 0
 The final eligibility map - After all exclusions, remaining 1s = eligible land
-
-Data Import needs to been improved to be more robust.
-For now you need to manually define the input and output paths.
 '''
 
+import sys
+from pathlib import Path
+
+# ============================================
+# SETUP: Add project root to Python path
+# ============================================
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
+# ============================================
+# IMPORTS FROM CONFIG
+# ============================================
+from config import (
+    STUDY_AREA_SHAPEFILE,  # Input: study area boundary
+    REGION_MASK,           # Output: region mask raster
+    TARGET_CRS,            # Target coordinate system (EPSG:32633)
+    RESOLUTION,            # Raster resolution in meters (100)
+    PREPROCESSED_DIR,      # Output directory
+)
+
+# ============================================
+# OTHER IMPORTS
+# ============================================
 import rasterio
 from rasterio.features import rasterize
+from rasterio.transform import from_bounds
 import geopandas as gpd
 import numpy as np
 from pyproj import CRS
 
-# ============================================
-# CONFIGURATION
-# ============================================
-TARGET_CRS = "EPSG:32633"  # WGS 84 / UTM zone 33N
-RESOLUTION = 100  # meters
-INPUT_SHAPEFILE = r'C:/Studium/MASTER/KURSE/GIS_Analysetechniken_2/GIS_2_midterm/data/raw/BezirkundNatura2000/Suedoststeiermark_Shapefile.shp'
-OUTPUT_RASTER = r'C:/Studium/MASTER/KURSE/GIS_Analysetechniken_2/GIS_2_midterm/data/preprocessed/region_mask_100m.tif'
+# Create output directory if needed
+PREPROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
 # ============================================
 # LOAD AND VALIDATE CRS
 # ============================================
 print("Loading boundary shapefile...")
-boundary = gpd.read_file(INPUT_SHAPEFILE)
+boundary = gpd.read_file(STUDY_AREA_SHAPEFILE)
 
 # Check if Layer has a CRS
 if boundary.crs is None:
     raise ValueError(
-        f"Shapefile '{INPUT_SHAPEFILE}' has no CRS! "
+        f"Shapefile '{STUDY_AREA_SHAPEFILE}' has no CRS! "
         "Please define CRS (e.g. in QGIS) before proceeding."
     )
 
@@ -48,11 +64,11 @@ input_crs = CRS.from_user_input(boundary.crs)
 target_crs = CRS.from_user_input(TARGET_CRS)
 
 if not input_crs.equals(target_crs):
-    print(f"⚠ Reprojecting from {input_crs.to_string()} to {target_crs.to_string()}...")
+    print(f"Reprojecting from {input_crs.to_string()} to {target_crs.to_string()}...")
     boundary = boundary.to_crs(target_crs)
-    print("✓ Reprojection complete")
+    print("Reprojection complete")
 else:
-    print(f"✓ CRS is correct: {target_crs.to_string()}")
+    print(f"CRS is correct: {target_crs.to_string()}")
 
 # ============================================
 # CREATE REGION MASK
@@ -91,7 +107,6 @@ print(f"Pixel size: {RESOLUTION} x {RESOLUTION} meters")
     Without a transform, your raster is just a matrix of 
     numbers with no geographic context
 '''
-from rasterio.transform import from_bounds
 transform = from_bounds(bounds[0], bounds[1], bounds[2], bounds[3], 
                         width, height)
 
@@ -113,9 +128,9 @@ mask = rasterize(
 '''
 This saves the NumPy array as a GeoTIFF file with proper metadata
 '''
-print(f"Saving to {OUTPUT_RASTER}...")
+print(f"Saving to {REGION_MASK}...")
 with rasterio.open(
-    OUTPUT_RASTER,
+    REGION_MASK,
     'w',
     driver='GTiff',
     height=height,
@@ -129,7 +144,7 @@ with rasterio.open(
 ) as dst:
     dst.write(mask, 1)
 
-print(f"✓ Region mask created successfully!")
+print(f"Region mask created successfully!")
 print(f"  - Total pixels: {width * height:,}")
 print(f"  - Study area pixels: {np.sum(mask == 1):,}")
-print(f"  - Study area: {np.sum(mask == 1) * RESOLUTION * RESOLUTION / 1e6:.2f} km²")
+print(f"  - Study area: {np.sum(mask == 1) * RESOLUTION * RESOLUTION / 1e6:.2f} km2")

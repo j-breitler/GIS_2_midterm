@@ -1,52 +1,97 @@
-#Task:
-#Create buffer zones around shapefiles
+"""
+Create buffer zones around constraint shapefiles
 
-# Input directory: clipped shapes
-CLIPPED_DIR = Path("data/processed/clipped_southeaststyria")
+This script:
+1. Reads the clipped shapefiles (output from reproject_clip_shps.py)
+2. Applies buffer distances from config.BUFFER_DISTANCES
+3. Saves buffered shapefiles to preprocessed folder
 
-# Output directory
-BUFFERED_DIR = Path("data/processed/buffered_southeaststyria")
+Input:  Clipped shapefiles from PREPROCESSED_DIR/clipped/
+Output: Buffered shapefiles in PREPROCESSED_DIR/buffered/
+"""
 
-# Buffer distances (meters)
-BUFFER_DIST = {
-    "Powerlines_southeaststyria": 120,
-    "Streets_southeaststyria": 100,
-    "Railway_southeaststyria": 100,
-    "Airport_southeaststyria": 5000,
-    "UrbanArea_southeaststyria": 500,
-    "Industry_southeaststyria": 500,
-    "WaterBodies_southeaststyria": 0,
-    "Natura200_southeaststyria": 300,
-    "Forest_southeaststyria": 0,
-}
+import sys
+from pathlib import Path
+
+# ============================================
+# SETUP: Add project root to Python path
+# ============================================
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
+# ============================================
+# IMPORTS FROM CONFIG
+# ============================================
+from config import (
+    PREPROCESSED_DIR,      # Base directory for processed files
+    BUFFER_DISTANCES,      # Dictionary of buffer distances per constraint
+)
+
+# ============================================
+# OTHER IMPORTS
+# ============================================
+import geopandas as gpd
+
+# ============================================
+# INPUT/OUTPUT DIRECTORIES
+# ============================================
+# Input: clipped shapefiles from reproject_clip_shps.py
+CLIPPED_DIR = PREPROCESSED_DIR / "clipped"
+
+# Output: buffered shapefiles
+BUFFERED_DIR = PREPROCESSED_DIR / "buffered"
 
 
 def buffer_all():
+    """
+    Apply buffer zones to all clipped constraint shapefiles.
+    
+    Buffer distances are defined in config.BUFFER_DISTANCES.
+    If buffer distance is 0, the geometry is copied unchanged.
+    """
+    print("=" * 60)
+    print("BUFFER CONSTRAINT SHAPEFILES")
+    print("=" * 60)
+    print(f"Input dir:  {CLIPPED_DIR}")
+    print(f"Output dir: {BUFFERED_DIR}")
+    print()
+
     BUFFERED_DIR.mkdir(parents=True, exist_ok=True)
 
-    for shp_path in CLIPPED_DIR.glob("*.shp"):
-        stem = shp_path.stem
+    # Process each constraint type defined in config
+    for name, buffer_dist in BUFFER_DISTANCES.items():
+        # Input file from clipped directory
+        shp_path = CLIPPED_DIR / f"{name}_clipped.shp"
 
-        if stem not in BUFFER_DIST:
-            print(f"Skipping (no buffer config): {shp_path.name}")
+        if not shp_path.exists():
+            print(f"[SKIP] {name}: clipped file not found")
             continue
 
-        buffer_dist = BUFFER_DIST[stem]
-        print(f"\nProcessing: {shp_path.name} (buffer = {buffer_dist} m)")
+        print(f"Processing: {name} (buffer = {buffer_dist} m)")
 
+        # Load shapefile
         gdf = gpd.read_file(shp_path)
+        print(f"  Features loaded: {len(gdf)}")
 
-        # Apply buffer only if distance > 0, otherwise just copy geometry
+        # Apply buffer only if distance > 0
         if buffer_dist > 0:
             gdf["geometry"] = gdf.geometry.buffer(buffer_dist)
+            print(f"  Buffer applied: {buffer_dist} m")
         else:
-            print("  Buffer distance is 0 m → geometry unchanged.")
+            print(f"  Buffer distance is 0 m - geometry unchanged")
 
-        out_path = BUFFERED_DIR / f"{stem}_buf.shp"
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-
+        # Save buffered shapefile
+        out_path = BUFFERED_DIR / f"{name}_buffered.shp"
         gdf.to_file(out_path, mode="w")
-        print(f"  → Saved buffered layer to {out_path}")
+        print(f"  [OK] Saved to {out_path.name}")
+
+    # Summary
+    print("\n" + "=" * 60)
+    print("PROCESSING COMPLETE")
+    print("=" * 60)
+    print(f"Output location: {BUFFERED_DIR}")
+    print("=" * 60)
+
 
 if __name__ == "__main__":
-    buffer_all()        
+    buffer_all()
