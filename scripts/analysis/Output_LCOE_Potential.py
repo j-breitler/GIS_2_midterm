@@ -12,7 +12,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 # ============================================
 from config import (
     PVOUT_RAW,             # Input: daily PV yield (kWh/kWp/day)
-    REGION_MASK,           # Input: 0/1 mask of the study area (100 m)
+    MASTER_SUITABILITY,    # Input: 0/1 suitability mask after all exclusions (100 m)
     RESULTS_RASTERS_DIR,   # Output directory
     TARGET_CRS,            # Target CRS (EPSG:32633)
     RESOLUTION,            # Target resolution in meters (100)
@@ -83,7 +83,7 @@ with rasterio.open(PVOUT_RAW) as src:
 # 3) Align PVOUT raster to the region mask grid
 #    (same extent, resolution, and transform as region_mask)
 # --------------------------------------------------
-with rasterio.open(REGION_MASK) as mask, rasterio.open(pvout_utm) as src:
+with rasterio.open(MASTER_SUITABILITY) as mask, rasterio.open(pvout_utm) as src:
     dst_meta = mask.meta.copy()
     # use the mask's shape as template; data will be overwritten by reproject()
     dst_data = mask.read(1).astype("float32")
@@ -130,7 +130,7 @@ with rasterio.open(E_year_raster, "w", **meta) as dst:
 # 5) Compute mean specific yearly yield over the study area
 #    (only where region_mask == 1)
 # --------------------------------------------------
-with rasterio.open(REGION_MASK) as msrc, rasterio.open(E_year_raster) as esrc:
+with rasterio.open(MASTER_SUITABILITY) as msrc, rasterio.open(E_year_raster) as esrc:
     mask   = msrc.read(1)          # 0/1
     E_year = esrc.read(1)          # kWh/kWp/year
 
@@ -162,7 +162,7 @@ CRF = crf(i, N)
 # numerator of the LCOE equation (annualised cost per kW)
 num_cost = (H + 0.5 * H) * CRF + I0 * theta
 
-with rasterio.open(E_year_raster) as esrc, rasterio.open(REGION_MASK) as msrc:
+with rasterio.open(E_year_raster) as esrc, rasterio.open(MASTER_SUITABILITY) as msrc:
     E_year = esrc.read(1).astype("float32")   # kWh/kWp/year
     mask   = msrc.read(1)
 

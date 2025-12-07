@@ -146,6 +146,10 @@ RAW_VECTORS = {
 # This serves as the "canvas" for exclusion analysis
 REGION_MASK = PREPROCESSED_DIR / "region_mask_100m.tif"
 
+# Master suitability = final result after all exclusions applied
+# 1 = suitable land, 0 = excluded or outside study area
+MASTER_SUITABILITY = PREPROCESSED_DIR / "master_suitability.tif"
+
 # ============================================
 # ANALYSIS SETTINGS
 # ============================================
@@ -185,7 +189,7 @@ BUFFER_DISTANCES = {
 # Maximum slope angle in degrees for PV installation
 # Steeper slopes are harder/more expensive to build on
 # Typical thresholds: 10-20 degrees depending on technology
-MAX_SLOPE_DEGREES = 15
+MAX_SLOPE_DEGREES = 30
 
 # ============================================
 # HELPER FUNCTIONS
