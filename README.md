@@ -37,7 +37,7 @@ We adapt this methodology to the Suedoststeiermark district context, focusing on
 | 7 | python scripts/preprocessing/master_exclusion.py | data/preprocessed/master_suitability.tif **(FINAL)** |
 
 ### Data Flow Diagram
-
+```text
 Study Area Shapefile --> region_mask_100m.tif --+
                                                 |
 DEM (30m) --> DEM_clipped.tif --> slope_exclusion.tif --+
@@ -49,9 +49,9 @@ Vector Shapefiles:                                       |
   UrbanArea, WaterBodies                     ------------+
 
 ---
-
+```
 ## Project Structure
-
+```text
 GIS_2_midterm/
 |-- config.py                    # Central configuration (paths, settings, parameters)
 |-- requirements.txt             # Python dependencies
@@ -84,7 +84,7 @@ GIS_2_midterm/
 +-- notebooks/                   # Jupyter notebooks
 
 ---
-
+```
 ## Configuration System
 
 All paths and parameters are centralized in config.py.
