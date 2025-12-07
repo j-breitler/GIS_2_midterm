@@ -35,7 +35,7 @@ We adapt this methodology to the Suedoststeiermark district context, focusing on
 | 5 | python scripts/preprocessing/slope_exclusion.py | data/preprocessed/exclusions/slope_exclusion.tif |
 | 6 | python scripts/preprocessing/batch_process_vector_to_raster_exclusion.py | data/preprocessed/exclusions/*_exclusion.tif |
 | 7 | python scripts/preprocessing/master_exclusion.py | data/preprocessed/master_suitability.tif|
-| 8 | python scripts/analysis/Output_LCOE_Potential.py | data/results/lcoe_aligned.tif **Final**|
+| 8 | python scripts/analysis/Output_LCOE_Potential.py | data/results/rasters/lcoe_aligned.tif **Final**|
 
 ### Data Flow Diagram
 ```text
