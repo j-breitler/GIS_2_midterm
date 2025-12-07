@@ -6,7 +6,7 @@ Preprocessing scripts for GIS-based PV potential assessment in Austria
 #Reproject shapefiles to UTM 33N
 #Setup
 import os
-os.environ["SHAPE_RESTORE_SHX"] = "YES"   # <-- FIX for missing .shx files
+os.environ["SHAPE_RESTORE_SHX"] = "YES"  
 from pathlib import Path
 import geopandas as gpd
 
@@ -106,7 +106,7 @@ from rasterio.mask import mask
 from pathlib import Path
 
 # Paths
-DEM_RAW = Path("data/raw/DEM_30m_SO.tif")  # <-- your input DEM
+DEM_RAW = Path("data/raw/DEM_30m_SO.tif")  
 IN_DIR = Path("data/processed/reprojected_utm33n")
 OUT_DIR = Path("data/processed/clipped_southeaststyria")
 
