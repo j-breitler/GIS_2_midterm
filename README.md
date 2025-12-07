@@ -196,8 +196,4 @@ Scripts set SHAPE_RESTORE_SHX=YES to handle shapefiles with missing .shx files.
 
 ## References
 
-1. Benalcazar, P., Komorowska, A., and Kaminski, J. (2024). A GIS-based method for assessing the economics of utility-scale photovoltaic systems. Applied Energy, 353, 122044.
-
-2. IRENA. (2022). Renewable power generation costs in 2021.
-
-3. European Commission. (2022). EU solar energy strategy.
+1. Benalcazar, P., Komorowska, A., and Kaminski, J. (2024). A GIS-based method for assessing the economics of utility-scale photovoltaic systems. Applied Energy, 353, 122044. (https://doi.org/10.1016/j.apenergy.2023.122044).

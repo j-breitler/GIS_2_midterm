@@ -4,6 +4,9 @@ data/**/*
 !data/**/.gitkeep
 !data/results/README.md
 
+# Ignore doc folder
+docs/
+
 # Ignore Python cache
 __pycache__/
 
