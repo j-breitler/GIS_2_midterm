@@ -1,5 +1,8 @@
-# Ignore data folder
-data/
+# Ignore data files but keep folder structure
+data/**/*
+!data/**/
+!data/**/.gitkeep
+!data/results/README.md
 
 # Ignore Python cache
 __pycache__/

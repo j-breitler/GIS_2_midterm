@@ -1,37 +1,50 @@
-import pathlib
+import sys
+from pathlib import Path
+
+# ============================================
+# SETUP: Add project root to Python path
+# ============================================
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
+# ============================================
+# IMPORTS FROM CONFIG
+# ============================================
+from config import (
+    PVOUT_RAW,             # Input: daily PV yield (kWh/kWp/day)
+    REGION_MASK,           # Input: 0/1 mask of the study area (100 m)
+    RESULTS_RASTERS_DIR,   # Output directory
+    TARGET_CRS,            # Target CRS (EPSG:32633)
+    RESOLUTION,            # Target resolution in meters (100)
+)
+
+# ============================================
+# OTHER IMPORTS
+# ============================================
 import numpy as np
 import rasterio
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 
-# --------------------------------------------------
-# Base paths (only THIS block must be adapted locally)
-# --------------------------------------------------
-BASE = pathlib.Path(
-    r"C:\1_Daten\01_UniGraz\2025 WiSe\VU GIS Analysis Techniques 2\midterm_project"
-)
-RAW = BASE / "data" / "raw"
-PROC = BASE / "data" / "processed"
+# ============================================
+# OUTPUT PATHS
+# ============================================
+RESULTS_RASTERS_DIR.mkdir(parents=True, exist_ok=True)
 
-# Input paths
-pvout_raw   = RAW  / "PVOUT.tif"              # daily PV yield (kWh/kWp/day)
-region_mask = PROC / "DATEINAME DER EIGNUNGSMASKE EINTRAGEN.tif"   # 0/1 mask of the study area (100 m)
-
-# Output paths
-pvout_utm     = PROC / "pvout_32633_100m.tif"        # PVOUT reprojected to UTM 33N
-pvout_aligned = PROC / "pvout_aligned_to_mask.tif"   # PVOUT aligned to region mask
-E_year_raster = PROC / "pvout_Eyear_aligned.tif"     # yearly PV yield
-lcoe_raster   = PROC / "lcoe_aligned.tif"            # LCOE raster
+pvout_utm     = RESULTS_RASTERS_DIR / "pvout_32633_100m.tif"
+pvout_aligned = RESULTS_RASTERS_DIR / "pvout_aligned_to_mask.tif"
+E_year_raster = RESULTS_RASTERS_DIR / "pvout_Eyear_aligned.tif"
+lcoe_raster   = RESULTS_RASTERS_DIR / "lcoe_aligned.tif"
 
 SRC_CRS = "EPSG:4326"   # original PVOUT CRS (lat/lon)
-DST_CRS = "EPSG:32633"  # target CRS (UTM 33N)
-DST_RES = 100           # target resolution in metres
+DST_CRS = TARGET_CRS
+DST_RES = RESOLUTION
 
 
 # --------------------------------------------------
 # 1) Inspect original PVOUT raster
 #    (CRS, geotransform, size, basic sanity check)
 # --------------------------------------------------
-with rasterio.open(pvout_raw) as src:
+with rasterio.open(PVOUT_RAW) as src:
     print(src.crs)
     print(src.transform)
     print(src.width, src.height)
@@ -42,7 +55,7 @@ with rasterio.open(pvout_raw) as src:
 # 2) Reproject PVOUT to UTM 33N with 100 m resolution
 #    → creates a consistent metric grid for later analysis
 # --------------------------------------------------
-with rasterio.open(pvout_raw) as src:
+with rasterio.open(PVOUT_RAW) as src:
     transform, width, height = calculate_default_transform(
         src.crs, DST_CRS, src.width, src.height, *src.bounds, resolution=DST_RES
     )
@@ -70,7 +83,7 @@ with rasterio.open(pvout_raw) as src:
 # 3) Align PVOUT raster to the region mask grid
 #    (same extent, resolution, and transform as region_mask)
 # --------------------------------------------------
-with rasterio.open(region_mask) as mask, rasterio.open(pvout_utm) as src:
+with rasterio.open(REGION_MASK) as mask, rasterio.open(pvout_utm) as src:
     dst_meta = mask.meta.copy()
     # use the mask's shape as template; data will be overwritten by reproject()
     dst_data = mask.read(1).astype("float32")
@@ -117,7 +130,7 @@ with rasterio.open(E_year_raster, "w", **meta) as dst:
 # 5) Compute mean specific yearly yield over the study area
 #    (only where region_mask == 1)
 # --------------------------------------------------
-with rasterio.open(region_mask) as msrc, rasterio.open(E_year_raster) as esrc:
+with rasterio.open(REGION_MASK) as msrc, rasterio.open(E_year_raster) as esrc:
     mask   = msrc.read(1)          # 0/1
     E_year = esrc.read(1)          # kWh/kWp/year
 
@@ -149,7 +162,7 @@ CRF = crf(i, N)
 # numerator of the LCOE equation (annualised cost per kW)
 num_cost = (H + 0.5 * H) * CRF + I0 * theta
 
-with rasterio.open(E_year_raster) as esrc, rasterio.open(region_mask) as msrc:
+with rasterio.open(E_year_raster) as esrc, rasterio.open(REGION_MASK) as msrc:
     E_year = esrc.read(1).astype("float32")   # kWh/kWp/year
     mask   = msrc.read(1)
 
