@@ -91,7 +91,7 @@ plt.tight_layout()
 #save plot
 output_dir = r"data/results/figures"
 os.makedirs(output_dir, exist_ok=True)
-output_file = os.path.join(output_dir, "FINAL_TEST.png")
+output_file = os.path.join(output_dir, "FINAL_VISUALISATION.png")
 plt.savefig(output_file, dpi=300, bbox_inches='tight')
 
 #show plot
