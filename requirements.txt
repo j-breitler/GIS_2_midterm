@@ -1,0 +1,15 @@
+# GIS Analysis Dependencies
+# Solar PV Suitability Analysis - Suedoststeiermark, Austria
+
+# Core geospatial libraries
+geopandas
+rasterio
+pyproj
+shapely
+
+# Scientific computing
+numpy
+scipy
+
+# Visualization
+matplotlib
