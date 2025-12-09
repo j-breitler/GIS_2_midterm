@@ -1,52 +1,80 @@
-import os
+"""
+Final visualization script for PV potential.
+Creates a heatmap showing LCOE (Levelized Cost of Electricity) across the study area.
+"""
+
+import sys
+from pathlib import Path
+
+# ============================================
+# SETUP: Add project root to Python path
+# ============================================
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
+# ============================================
+# IMPORTS FROM CONFIG
+# ============================================
+from config import (
+    REGION_MASK,              # Input: region mask raster
+    LCOE_RASTER,              # Input: LCOE aligned raster
+    FINAL_VISUALISATION_PLOT, # Output: final visualisation figure
+    RESULTS_FIGURES_DIR,      # Output directory for figures
+)
+
+# ============================================
+# OTHER IMPORTS
+# ============================================
 import rasterio
-import matplotlib.pyplot as plt
 from rasterio.transform import xy
+import matplotlib.pyplot as plt
 import numpy as np
 import pyproj
 from matplotlib.patches import Patch
 
-# PROJ_LIB
-proj_data_path = os.path.join(os.path.dirname(rasterio.__file__), "proj_data")
-os.environ['PROJ_LIB'] = proj_data_path
+# Create output directory if needed
+RESULTS_FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
-# Paths
-script_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Region Mask
-mask_path = os.path.join(script_dir, "..", "..", "data", "preprocessed", "region_mask_100m.tif")
-mask_path = os.path.normpath(mask_path)
-
-# Master Suitability (ICOE Aligned)
-suit_path = os.path.join(script_dir, "..", "..", "data", "results", "rasters", "lcoe_aligned.tif")
-suit_path = os.path.normpath(suit_path)
-
-# TIFs einlesen
-with rasterio.open(mask_path) as src_mask:
+# ============================================
+# LOAD RASTER DATA
+# ============================================
+print(f"Loading region mask from {REGION_MASK}...")
+with rasterio.open(REGION_MASK) as src_mask:
     data_mask = src_mask.read(1)
     transform_mask = src_mask.transform
     crs_mask = src_mask.crs
     height_mask, width_mask = data_mask.shape
 
-with rasterio.open(suit_path) as src_suit:
+print(f"Loading LCOE raster from {LCOE_RASTER}...")
+with rasterio.open(LCOE_RASTER) as src_suit:
     data_suit = src_suit.read(1)
     transform_suit = src_suit.transform
     crs_suit = src_suit.crs
     height_suit, width_suit = data_suit.shape
 
-# Funktion für Lat/Lon-Ticks
+print(f"Region mask dimensions: {width_mask} x {height_mask} pixels")
+print(f"LCOE raster dimensions: {width_suit} x {height_suit} pixels")
+
+# ============================================
+# AXIS CONVERSION TO LAT/LON
+# ============================================
 def get_latlon_ticks(transform, crs, width, height, num_ticks=5):
+    """Generate tick values for x and y axes in Lat/Lon."""
     xs = np.linspace(0, width-1, num_ticks)
     ys = np.linspace(0, height-1, num_ticks)
 
     lon_ticks = []
     lat_ticks = []
 
+    # Create transformer if CRS is not WGS84
+    transformer = None
+    if crs.to_string() != 'EPSG:4326':
+        transformer = pyproj.Transformer.from_crs(crs, 'EPSG:4326', always_xy=True)
+
     for x in xs:
         for y in ys:
             lon, lat = xy(transform, y, x)
-            if crs.to_string() != 'EPSG:4326':
-                transformer = pyproj.Transformer.from_crs(crs, 'EPSG:4326', always_xy=True)
+            if transformer:
                 lon, lat = transformer.transform(lon, lat)
             lon_ticks.append(lon)
             lat_ticks.append(lat)
@@ -55,32 +83,37 @@ def get_latlon_ticks(transform, crs, width, height, num_ticks=5):
 
 x_ticks_mask, y_ticks_mask = get_latlon_ticks(transform_mask, crs_mask, width_mask, height_mask, num_ticks=5)
 
-# Plot erstellen
+# ============================================
+# PLOTTING
+# ============================================
+print("Creating plot...")
 fig, ax = plt.subplots(figsize=(10, 10))
 
-# Master Suitability mit grüner Colormap plotten
+# LCOE heatmap with inferno colormap
 suit_img = ax.imshow(data_suit, cmap='inferno', alpha=0.7)
 cbar = fig.colorbar(suit_img, ax=ax, fraction=0.036, pad=0.04)
 cbar.set_label('kWh/year', rotation=270, labelpad=15)
 
-# Region Mask Kontur schwarz
+# Region mask contour (black outline)
 ax.contour(data_mask, levels=[0.5], colors='black', linewidths=1.5, alpha=0.7)
 
-# Achsen
+# Axis labels
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
+
+# Axis ticks
 ax.set_xticks(np.linspace(0, width_mask-1, len(x_ticks_mask)))
 ax.set_xticklabels([f"{lon:.4f}" for lon in x_ticks_mask], rotation=45)
 ax.set_yticks(np.linspace(0, height_mask-1, len(y_ticks_mask)))
 ax.set_yticklabels([f"{lat:.4f}" for lat in y_ticks_mask])
 
-# Raster
+# Grid
 ax.grid(True, color='black', linestyle='--', alpha=0.3)
 
-# Titel
+# Title
 ax.set_title('Photovoltaic Potential in Südoststeiermark', fontsize=16)
 
-# Legende für Region Mask
+# Legend for region mask
 legend_handles = [
     Patch(facecolor='none', edgecolor='black', linewidth=1.5, label='Südoststeiermark')
 ]
@@ -88,11 +121,11 @@ ax.legend(handles=legend_handles, loc='upper right')
 
 plt.tight_layout()
 
-#save plot
-output_dir = r"data/results/figures"
-os.makedirs(output_dir, exist_ok=True)
-output_file = os.path.join(output_dir, "FINAL_VISUALISATION.png")
-plt.savefig(output_file, dpi=300, bbox_inches='tight')
+# ============================================
+# SAVE AND SHOW PLOT
+# ============================================
+print(f"Saving plot to {FINAL_VISUALISATION_PLOT}...")
+plt.savefig(FINAL_VISUALISATION_PLOT, dpi=300, bbox_inches='tight')
+print("Plot saved successfully!")
 
-#show plot
 plt.show()

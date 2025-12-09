@@ -28,14 +28,17 @@ We adapt this methodology to the Suedoststeiermark district context, focusing on
 
 | Step | Script | Output |
 |------|--------|--------|
-| 1 | python scripts/preprocessing/raster_region_mask.py | data/preprocessed/region_mask_100m.tif |
-| 2 | python scripts/preprocessing/reproject_clip_dem.py | data/preprocessed/DEM_clipped.tif |
-| 3 | python scripts/preprocessing/reproject_clip_shps.py | data/preprocessed/clipped/*_clipped.shp |
-| 4 | python scripts/preprocessing/buffer_shps.py | data/preprocessed/buffered/*_buffered.shp |
-| 5 | python scripts/preprocessing/slope_exclusion.py | data/preprocessed/exclusions/slope_exclusion.tif |
-| 6 | python scripts/preprocessing/batch_process_vector_to_raster_exclusion.py | data/preprocessed/exclusions/*_exclusion.tif |
-| 7 | python scripts/preprocessing/master_exclusion.py | data/preprocessed/master_suitability.tif|
-| 8 | python scripts/analysis/Output_LCOE_Potential.py | data/results/rasters/lcoe_aligned.tif **Final**|
+| 1 | scripts/preprocessing/raster_region_mask.py | data/preprocessed/region_mask_100m.tif |
+| 2 | scripts/preprocessing/reproject_clip_dem.py | data/preprocessed/DEM_clipped.tif |
+| 3 | scripts/preprocessing/reproject_clip_shps.py | data/preprocessed/clipped/*_clipped.shp |
+| 4 | scripts/preprocessing/buffer_shps.py | data/preprocessed/buffered/*_buffered.shp |
+| 5 | scripts/preprocessing/slope_exclusion.py | data/preprocessed/exclusions/slope_exclusion.tif |
+| 6 | scripts/preprocessing/batch_process_vector_to_raster_exclusion.py | data/preprocessed/exclusions/*_exclusion.tif |
+| 7 | scripts/preprocessing/master_exclusion.py | data/preprocessed/master_suitability.tif|
+| 8 | scripts/analysis/Output_LCOE_Potential.py | data/results/rasters/lcoe_aligned.tif|
+| 9 | scripts/visualization/research_area_empty.py | data/results/figures/research_area_plot.png|
+| 10 | scripts/visualization/included_areas.py | data/results/figures/eligible_areas_plot.png|
+| 11 | scripts/visualization/final_visualization.py | data/results/figures/FINAL_VISUALISATION.png|
 
 ### Data Flow Diagram
 ```text
@@ -96,7 +99,7 @@ All paths and parameters are centralized in config.py.
 |-----------|-------|-------------|
 | TARGET_CRS | EPSG:32633 | UTM Zone 33N (meters) |
 | RESOLUTION | 100m | Raster pixel size |
-| MAX_SLOPE_DEGREES | 15 degrees | Slope threshold for exclusion |
+| MAX_SLOPE_DEGREES | 30 degrees | Slope threshold for exclusion |
 
 ### Buffer Distances
 
@@ -139,7 +142,7 @@ Reprojects all constraint shapefiles to UTM 33N and clips. Output: preprocessed/
 Applies buffer distances from config.BUFFER_DISTANCES. Output: preprocessed/buffered/
 
 ### Step 5: slope_exclusion.py
-Calculates slope using Sobel operator. Creates exclusion where slope > 15 degrees.
+Calculates slope using Sobel operator. Creates exclusion where slope > 30 degrees.
 
 ### Step 6: batch_process_vector_to_raster_exclusion.py
 Converts buffered shapefiles to rasters matching region mask. Output: exclusions/
@@ -147,6 +150,51 @@ Converts buffered shapefiles to rasters matching region mask. Output: exclusions
 ### Step 7: master_exclusion.py
 Combines all exclusions: suitability = region_mask AND (NOT each_exclusion)
 Output: master_suitability.tif (1=suitable, 0=excluded)
+
+---
+
+## Analysis Script Detail
+
+### Step 8: Output_LCOE_Potential.py
+Calculates the techno-economic potential of eligible areas using the LCOE methodology from Benalcazar et al. (2024).
+
+**Processing Steps:**
+1. **Reproject PVOUT**: Reprojects solar output raster from EPSG:4326 to UTM 33N at 100m resolution
+2. **Align to mask**: Aligns PVOUT raster to match the master suitability grid (same extent and transform)
+3. **Convert to yearly yield**: Multiplies daily PV yield (kWh/kWp/day) by 365 to get annual yield
+4. **Calculate LCOE**: Computes Levelized Cost of Electricity for each eligible pixel using the formula:
+   ```
+   LCOE = [(H + 0.5*H) * CRF + I0 * theta] / E_year
+   ```
+5. **Estimate capacity**: Calculates installable capacity using land-use efficiency factors (35-50 MW/km²)
+6. **Estimate energy potential**: Computes annual electricity generation potential (GWh/year)
+
+**Techno-Economic Parameters (from Benalcazar et al., 2024):**
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| H (CAPEX) | 545.6 €/kW | Capital expenditure |
+| i | 5.92% | Discount rate |
+| N | 25 years | System lifetime |
+| theta | 1% | Annual O&M cost (% of CAPEX) |
+
+**Output Files:**
+- `pvout_32633_100m.tif` - Reprojected PVOUT raster
+- `pvout_aligned_to_mask.tif` - PVOUT aligned to study area grid
+- `pvout_Eyear_aligned.tif` - Annual energy yield (kWh/kWp/year)
+- `lcoe_aligned.tif` - LCOE raster (€/kWh)
+
+---
+
+## Visualization Scripts
+
+After running the analysis, use these scripts to create maps:
+
+| Script | Description | Output |
+|--------|-------------|--------|
+| `scripts/visualisation/research_area_empty.py` | Simple map of the study area boundary | `data/results/figures/research_area_plot.png` |
+| `scripts/visualisation/included_areas.py` | Map showing eligible vs excluded areas | `data/results/figures/eligible_areas_plot.png` |
+| `scripts/visualisation/final_visualisation.py` | LCOE heatmap of PV potential | `data/results/figures/FINAL_VISUALISATION.png` |
 
 ---
 

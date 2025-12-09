@@ -151,6 +151,20 @@ REGION_MASK = PREPROCESSED_DIR / "region_mask_100m.tif"
 MASTER_SUITABILITY = PREPROCESSED_DIR / "master_suitability.tif"
 
 # ============================================
+# VISUALIZATION OUTPUTS
+# ============================================
+# Output figures from visualization scripts
+RESEARCH_AREA_PLOT = RESULTS_FIGURES_DIR / "research_area_plot.png"
+ELIGIBLE_AREAS_PLOT = RESULTS_FIGURES_DIR / "eligible_areas_plot.png"
+FINAL_VISUALISATION_PLOT = RESULTS_FIGURES_DIR / "FINAL_VISUALISATION.png"
+
+# ============================================
+# ANALYSIS OUTPUTS
+# ============================================
+# Output rasters from LCOE/potential analysis
+LCOE_RASTER = RESULTS_RASTERS_DIR / "lcoe_aligned.tif"
+
+# ============================================
 # ANALYSIS SETTINGS
 # ============================================
 # CRS = Coordinate Reference System
