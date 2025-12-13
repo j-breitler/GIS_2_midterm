@@ -1,8 +1,9 @@
 # Ignore data files but keep folder structure
-data/**/*
-!data/**/
-!data/**/.gitkeep
-!data/results/README.md
+data/*
+!data/raw/
+data/raw/**/*
+!data/raw/**/
+!data/raw/**/.gitkeep
 
 # Ignore doc folder
 docs
